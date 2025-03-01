@@ -41,15 +41,33 @@ public class UIManager : MonoBehaviour
     public void OnShootButton()
     {
         InventoryManager.Instance.UseRandomAmmo();
+        UpdateUI();
     }
 
     public void AddAmmos()
     {
         InventoryManager.Instance.AddAmmos();
+        UpdateUI();
     }
 
     public void AddRandomItems()
     {
         InventoryManager.Instance.AddRandomItems();
+        UpdateUI();
     }
+    public void RemoveItem()
+    {
+        InventoryManager.Instance.RemoveItem();
+        UpdateUI();
+    }
+    public void UpdateUI()
+    {
+        foreach (Transform child in slotsParent)
+        {
+            var slotUI = child.GetComponent<SlotUI>();
+            if (slotUI != null)
+                slotUI.UpdateUI();
+        }
+    }
+
 }

@@ -17,5 +17,5 @@ MonoBehaviour:
   weight: 5
   maxStack: 1
   id: 0
-  requiredAmmo: 0
+  requiredAmmo: 1
   damage: 20

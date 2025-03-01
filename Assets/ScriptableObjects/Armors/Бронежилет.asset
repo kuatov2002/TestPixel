@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b24e92b329e1a66419f7717fe2acd553, type: 3}
   m_Name: "\u0411\u0440\u043E\u043D\u0435\u0436\u0438\u043B\u0435\u0442"
   m_EditorClassIdentifier: 
-  itemName: 
-  icon: {fileID: 0}
-  weight: 0
+  itemName: "\u0411\u0440\u043E\u043D\u0435\u0436\u0438\u043B\u0435\u0442"
+  icon: {fileID: 21300000, guid: 57eeabfb59dfe124b926ef74583321a7, type: 3}
+  weight: 10
   maxStack: 1
   id: 0
-  armorSlot: 0
-  defense: 0
+  armorSlot: 1
+  defense: 10

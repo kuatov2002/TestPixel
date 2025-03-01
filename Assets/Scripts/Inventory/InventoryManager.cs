@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class InventoryManager : MonoBehaviour
@@ -28,12 +29,12 @@ public class InventoryManager : MonoBehaviour
 
     private void InitializeSlots()
     {
-        inventoryData.slots = new InventorySlot[30];
-        for (int i = 0; i < 30; i++)
+        inventoryData.slots = new InventorySlot[config.allSlots];
+        for (int i = 0; i < config.allSlots; i++)
         {
             inventoryData.slots[i] = new InventorySlot
             {
-                isLocked = i >= config.defaultSlots
+                isLocked = i >= config.unlockedSlots
             };
         }
     }
@@ -95,13 +96,98 @@ public class InventoryManager : MonoBehaviour
 
     public void AddItem(ItemData item, int quantity = 1)
     {
-        // Логика добавления предметов со стакированием
+        if (item == null || quantity <= 0)
+        {
+            Debug.LogWarning("Invalid item or quantity");
+            return;
+        }
+
+        // First try to stack the item with existing ones of the same type
+        for (int i = 0; i < inventoryData.slots.Length; i++)
+        {
+            var slot = inventoryData.slots[i];
+
+            // Skip locked or empty slots
+            if (slot.isLocked) continue;
+
+            // If the slot has the same item and is not at max stack
+            if (slot.item != null && slot.item.id == item.id && slot.quantity < slot.item.maxStack)
+            {
+                int spaceAvailable = slot.item.maxStack - slot.quantity;
+                int amountToAdd = Mathf.Min(spaceAvailable, quantity);
+
+                // Add as much as possible to this slot
+                slot.quantity += amountToAdd;
+                quantity -= amountToAdd;
+
+                // If we've added all items, we're done
+                if (quantity <= 0)
+                {
+                    SaveInventory();
+                    return;
+                }
+            }
+        }
+
+        // If we still have items to add or couldn't stack, find empty slots
+        for (int i = 0; i < inventoryData.slots.Length; i++)
+        {
+            var slot = inventoryData.slots[i];
+
+            // Skip locked slots
+            if (slot.isLocked) continue;
+
+            // If the slot is empty
+            if (slot.item == null)
+            {
+                // Calculate how many items to add to this slot
+                int amountToAdd = Mathf.Min(item.maxStack, quantity);
+
+                // Add the item to the slot
+                slot.item = item;
+                slot.quantity = amountToAdd;
+                quantity -= amountToAdd;
+
+                // If we've added all items, we're done
+                if (quantity <= 0)
+                {
+                    SaveInventory();
+                    return;
+                }
+            }
+        }
+
+        // If we still have items but couldn't add them, inventory is full
+        if (quantity > 0)
+        {
+            Debug.LogWarning($"Could not add {quantity} of {item.itemName} - Inventory is full!");
+        }
+
+        // Save inventory after changes
+        SaveInventory();
     }
 
-    public void RemoveItem(int slotIndex)
+    public void RemoveItem()
     {
-        // Логика удаления предметов
+        // Получаем список слотов, где есть предметы
+        List<InventorySlot> slots = inventoryData.slots.Where(slot => slot.item != null).ToList();
+
+        // Если список пуст, выводим сообщение об ошибке
+        if (slots.Count == 0)
+        {
+            Debug.LogError("Нет предметов для удаления!");
+            return;
+        }
+
+        // Выбираем случайный слот из списка
+        int randomIndex = Random.Range(0, slots.Count);
+        InventorySlot randomSlot = slots[randomIndex];
+
+        // Удаляем предмет из выбранного слота
+        randomSlot.item = null;
+        randomSlot.quantity = 0;
     }
+
 
     private void LoadInventory()
     {

@@ -16,7 +16,7 @@ public class SlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         UpdateUI();
     }
 
-    private void UpdateUI()
+    public void UpdateUI()
     {
         icon.sprite = slot.item?.icon;
         quantityText.text = slot.quantity > 1 ? slot.quantity.ToString() : "";
@@ -24,11 +24,11 @@ public class SlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     }
 
     // Drag & Drop реализация
-    /*public void OnBeginDrag(PointerEventData eventData)
+    public void OnBeginDrag(PointerEventData eventData)
     {
-        if (slot.item == null) return;
-        DragDropManager.Instance.StartDrag(slot);
-    }*/
+        //if (slot.item == null) return;
+        //DragDropManager.Instance.StartDrag(slot);
+    }
 
     public void OnDrag(PointerEventData eventData)
     {

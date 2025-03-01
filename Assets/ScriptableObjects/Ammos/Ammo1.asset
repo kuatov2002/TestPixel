@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 96ab5eb24b8b08f409978f149d1ef7eb, type: 3}
   m_Name: Ammo1
   m_EditorClassIdentifier: 
-  itemName: 
-  icon: {fileID: 0}
-  weight: 0
-  maxStack: 1
+  itemName: 1
+  icon: {fileID: 21300000, guid: ffe1f927392e6dd4f881eb63e75e179a, type: 3}
+  weight: 0.01
+  maxStack: 64
   id: 0
   ammoType: 0
