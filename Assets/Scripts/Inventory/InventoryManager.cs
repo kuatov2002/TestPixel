@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class InventoryManager : MonoBehaviour
@@ -24,7 +25,7 @@ public class InventoryManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
         LoadInventory();
-        InitializeSlots();
+        //InitializeSlots();
     }
 
     private void InitializeSlots()
@@ -102,25 +103,20 @@ public class InventoryManager : MonoBehaviour
             return;
         }
 
-        // First try to stack the item with existing ones of the same type
         for (int i = 0; i < inventoryData.slots.Length; i++)
         {
             var slot = inventoryData.slots[i];
 
-            // Skip locked or empty slots
             if (slot.isLocked) continue;
 
-            // If the slot has the same item and is not at max stack
             if (slot.item != null && slot.item.id == item.id && slot.quantity < slot.item.maxStack)
             {
                 int spaceAvailable = slot.item.maxStack - slot.quantity;
                 int amountToAdd = Mathf.Min(spaceAvailable, quantity);
 
-                // Add as much as possible to this slot
                 slot.quantity += amountToAdd;
                 quantity -= amountToAdd;
 
-                // If we've added all items, we're done
                 if (quantity <= 0)
                 {
                     SaveInventory();
@@ -129,26 +125,20 @@ public class InventoryManager : MonoBehaviour
             }
         }
 
-        // If we still have items to add or couldn't stack, find empty slots
         for (int i = 0; i < inventoryData.slots.Length; i++)
         {
             var slot = inventoryData.slots[i];
 
-            // Skip locked slots
             if (slot.isLocked) continue;
 
-            // If the slot is empty
             if (slot.item == null)
             {
-                // Calculate how many items to add to this slot
                 int amountToAdd = Mathf.Min(item.maxStack, quantity);
 
-                // Add the item to the slot
                 slot.item = item;
                 slot.quantity = amountToAdd;
                 quantity -= amountToAdd;
 
-                // If we've added all items, we're done
                 if (quantity <= 0)
                 {
                     SaveInventory();
@@ -157,13 +147,11 @@ public class InventoryManager : MonoBehaviour
             }
         }
 
-        // If we still have items but couldn't add them, inventory is full
         if (quantity > 0)
         {
             Debug.LogWarning($"Could not add {quantity} of {item.itemName} - Inventory is full!");
         }
 
-        // Save inventory after changes
         SaveInventory();
     }
 
@@ -186,66 +174,72 @@ public class InventoryManager : MonoBehaviour
         // Удаляем предмет из выбранного слота
         randomSlot.item = null;
         randomSlot.quantity = 0;
+        SaveInventory();
     }
 
 
     private void LoadInventory()
     {
-        // Загрузка через InventorySaveSystem
+        // Загружаем данные инвентаря из файла
+        inventoryData = InventorySaveSystem.LoadData();
+
+        // Если сохраненных данных нет или слоты не заданы, можно инициализировать их по умолчанию
+        if (inventoryData.slots == null || inventoryData.slots.Length == 0)
+        {
+            inventoryData.slots = new InventorySlot[config.allSlots];
+            for (int i = 0; i < config.allSlots; i++)
+            {
+                inventoryData.slots[i] = new InventorySlot
+                {
+                    isLocked = i >= config.unlockedSlots
+                };
+            }
+        }
     }
 
+    void OnApplicationQuit()
+    {
+        SaveInventory();
+    }
     private void SaveInventory()
     {
-        // Сохранение через InventorySaveSystem
+        InventorySaveSystem.SaveData(inventoryData);
     }
 
     public bool UseRandomAmmo()
     {
-        // Get all slots with ammo items
         List<int> slotsWithAmmo = new List<int>();
 
         for (int i = 0; i < inventoryData.slots.Length; i++)
         {
             var slot = inventoryData.slots[i];
 
-            // Skip if slot is locked or empty
             if (slot.isLocked || slot.item == null) continue;
 
-            // Check if item is ammo type
             if (slot.item is AmmoItemData && slot.quantity > 0)
             {
                 slotsWithAmmo.Add(i);
             }
         }
 
-        // If no ammo found, return false
         if (slotsWithAmmo.Count == 0)
         {
             Debug.LogWarning("No ammunition available to shoot.");
             return false;
         }
 
-        // Select random ammo slot
         int randomIndex = Random.Range(0, slotsWithAmmo.Count);
         int selectedSlotIndex = slotsWithAmmo[randomIndex];
 
-        // Reduce ammo quantity
         inventoryData.slots[selectedSlotIndex].quantity--;
 
-        // If quantity reaches zero, remove item
         if (inventoryData.slots[selectedSlotIndex].quantity <= 0)
         {
             inventoryData.slots[selectedSlotIndex].item = null;
             inventoryData.slots[selectedSlotIndex].quantity = 0;
         }
 
-        // Save inventory after changes
         SaveInventory();
-
-        // Notify UI to update
-        //OnInventoryChanged?.Invoke();
-
-        Debug.Log($"Used 1 ammunition from slot {selectedSlotIndex}");
         return true;
     }
 }
