@@ -1,10 +1,11 @@
 using UnityEngine;
-
 public class UIManager : MonoBehaviour
 {
     [SerializeField] private Transform slotsParent;
     [SerializeField] private GameObject slotPrefab;
     public static UIManager Instance { get; private set; }
+
+    private SlotUI[] slotUIComponents;
 
     private void Awake()
     {
@@ -28,15 +29,18 @@ public class UIManager : MonoBehaviour
     {
         foreach (Transform child in slotsParent) Destroy(child.gameObject);
 
-        for (int i = 0; i< InventoryManager.Instance.inventoryData.slots.Length; i++)
+        slotUIComponents = new SlotUI[InventoryManager.Instance.inventoryData.slots.Length];
+
+        for (int i = 0; i < InventoryManager.Instance.inventoryData.slots.Length; i++)
         {
             var slotObj = Instantiate(slotPrefab, slotsParent);
             var slotUI = slotObj.GetComponent<SlotUI>();
             slotUI.Initialize(InventoryManager.Instance.inventoryData.slots[i], i);
+
+            slotUIComponents[i] = slotUI;
         }
     }
 
-    // Обработчики кнопок
     public void OnShootButton()
     {
         InventoryManager.Instance.UseRandomAmmo();
@@ -54,19 +58,19 @@ public class UIManager : MonoBehaviour
         InventoryManager.Instance.AddRandomItems();
         UpdateUI();
     }
+
     public void RemoveItem()
     {
         InventoryManager.Instance.RemoveItem();
         UpdateUI();
     }
+
     public void UpdateUI()
     {
-        foreach (Transform child in slotsParent)
+        for (int i = 0; i < slotUIComponents.Length; i++)
         {
-            var slotUI = child.GetComponent<SlotUI>();
-            if (slotUI != null)
-                slotUI.UpdateUI();
+            if (slotUIComponents[i] != null)
+                slotUIComponents[i].Initialize(InventoryManager.Instance.inventoryData.slots[i], i);
         }
     }
-
 }

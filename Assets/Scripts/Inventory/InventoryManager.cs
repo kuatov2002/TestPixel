@@ -36,11 +36,9 @@ public class InventoryManager : MonoBehaviour
     {
         if (targetIndex == -1 || sourceIndex == targetIndex)
         {
-            Debug.Log($"Swap cancelled. Source: {sourceIndex}, Target: {targetIndex}");
+            Debug.Log($"Смена слотов отменена: {sourceIndex}, {targetIndex}");
             return;
         }
-
-        Debug.Log($"Swapping slots: {sourceIndex} <-> {targetIndex}");
 
         // Обмен данными между слотами
         (inventoryData.slots[targetIndex], inventoryData.slots[sourceIndex]) =
@@ -121,7 +119,7 @@ public class InventoryManager : MonoBehaviour
     {
         if (item == null || quantity <= 0)
         {
-            Debug.LogWarning("Invalid item or quantity");
+            Debug.LogWarning("Пустой предмет или количество");
             return;
         }
 
@@ -171,7 +169,7 @@ public class InventoryManager : MonoBehaviour
 
         if (quantity > 0)
         {
-            Debug.LogWarning($"Could not add {quantity} of {item.itemName} - Inventory is full!");
+            Debug.LogWarning($"Не смог добавить {quantity} предмета {item.itemName} - Инвентарь полон!");
         }
 
         SaveInventory();
@@ -246,7 +244,7 @@ public class InventoryManager : MonoBehaviour
 
         if (slotsWithAmmo.Count == 0)
         {
-            Debug.LogWarning("No ammunition available to shoot.");
+            Debug.LogWarning("Нет пуль.");
             return false;
         }
 
