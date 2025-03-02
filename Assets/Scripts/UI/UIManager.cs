@@ -28,11 +28,11 @@ public class UIManager : MonoBehaviour
     {
         foreach (Transform child in slotsParent) Destroy(child.gameObject);
 
-        foreach (var slot in InventoryManager.Instance.inventoryData.slots)
+        for (int i = 0; i< InventoryManager.Instance.inventoryData.slots.Length; i++)
         {
             var slotObj = Instantiate(slotPrefab, slotsParent);
             var slotUI = slotObj.GetComponent<SlotUI>();
-            slotUI.Initialize(slot);
+            slotUI.Initialize(InventoryManager.Instance.inventoryData.slots[i], i);
         }
     }
 

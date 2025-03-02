@@ -16,6 +16,6 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: 6598e100a1cc1134a801f4e201ba131f, type: 3}
   weight: 1
   maxStack: 1
-  id: 0
+  id: 4
   armorSlot: 1
   defense: 3

@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: "\u041F\u0438\u0441\u0442\u043E\u043B\u0435\u0442"
   m_EditorClassIdentifier: 
   itemName: "\u041F\u0438\u0441\u0442\u043E\u043B\u0435\u0442"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 7de4ea092695d0545920a796d27b7361, type: 3}
   weight: 1
   maxStack: 1
-  id: 0
+  id: 7
   requiredAmmo: 0
   damage: 10

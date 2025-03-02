@@ -25,9 +25,31 @@ public class InventoryManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
         LoadInventory();
-        //InitializeSlots();
-    }
+        if (inventoryData==null)
+        { 
+            InitializeSlots();
+        }
 
+    }
+    // InventoryManager.cs (добавить метод)
+    public void SwapSlots(int sourceIndex, int targetIndex)
+    {
+        if (targetIndex == -1 || sourceIndex == targetIndex)
+        {
+            Debug.Log($"Swap cancelled. Source: {sourceIndex}, Target: {targetIndex}");
+            return;
+        }
+
+        Debug.Log($"Swapping slots: {sourceIndex} <-> {targetIndex}");
+
+        // Обмен данными между слотами
+        (inventoryData.slots[targetIndex], inventoryData.slots[sourceIndex]) =
+            (inventoryData.slots[sourceIndex], inventoryData.slots[targetIndex]);
+
+        
+        SaveInventory();
+        UIManager.Instance.UpdateUI();
+    }
     private void InitializeSlots()
     {
         inventoryData.slots = new InventorySlot[config.allSlots];

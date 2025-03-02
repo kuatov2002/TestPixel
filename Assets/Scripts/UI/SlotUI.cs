@@ -1,3 +1,4 @@
+// SlotUI.cs
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -9,10 +10,13 @@ public class SlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     [SerializeField] private GameObject lockOverlay;
 
     private InventorySlot slot;
+    private int slotIndex;
+    private Canvas canvas;
 
-    public void Initialize(InventorySlot slot)
+    public void Initialize(InventorySlot slot, int index)
     {
         this.slot = slot;
+        this.slotIndex = index;
         UpdateUI();
     }
 
@@ -23,20 +27,33 @@ public class SlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         lockOverlay.SetActive(slot.isLocked);
     }
 
-    // Drag & Drop реализация
     public void OnBeginDrag(PointerEventData eventData)
     {
-        //if (slot.item == null) return;
-        //DragDropManager.Instance.StartDrag(slot);
+        if (slot.item == null || slot.isLocked) return;
+        DragDropManager.Instance.StartDrag(slot, slotIndex);
     }
 
     public void OnDrag(PointerEventData eventData)
     {
-        // Реализация перемещения
+        if (slot.item == null || slot.isLocked) return;
+        DragDropManager.Instance.UpdateDragPosition(eventData.position);
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        //DragDropManager.Instance.EndDrag();
+        if (slot.item == null || slot.isLocked) return;
+
+        GameObject dropTarget = eventData.pointerCurrentRaycast.gameObject;
+        SlotUI targetSlot = dropTarget?.GetComponentInParent<SlotUI>(); // Изменено на GetComponentInParent
+
+        if (targetSlot != null && targetSlot.slot.isLocked)
+        {
+            // Нельзя бросать в заблокированный слот
+            Debug.Log("Target slot is locked!");
+            DragDropManager.Instance.EndDrag(-1);
+            return;
+        }
+
+        DragDropManager.Instance.EndDrag(targetSlot?.slotIndex ?? -1);
     }
 }

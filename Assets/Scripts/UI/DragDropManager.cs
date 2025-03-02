@@ -1,17 +1,18 @@
+// DragDropManager.cs
 using UnityEngine;
 using UnityEngine.UI;
 
 public class DragDropManager : MonoBehaviour
 {
-    
-
     [SerializeField] private Canvas canvas;
+    [SerializeField] private GameObject parent;
     [SerializeField] private GameObject dragImagePrefab;
 
     private GameObject draggedImage;
     private RectTransform draggedRect;
     private InventorySlot sourceSlot;
     private int sourceIndex;
+
     public static DragDropManager Instance { get; private set; }
 
     private void Awake()
@@ -24,107 +25,43 @@ public class DragDropManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
-        DontDestroyOnLoad(gameObject);
     }
 
-    public void StartDrag(InventorySlot slot)
+    public void StartDrag(InventorySlot slot, int index)
     {
         sourceSlot = slot;
+        sourceIndex = index;
 
-        if (draggedImage == null)
-        {
-            draggedImage = Instantiate(dragImagePrefab, canvas.transform);
-            draggedRect = draggedImage.GetComponent<RectTransform>();
-        }
+        // Создаем временный объект для перетаскивания
+        draggedImage = Instantiate(dragImagePrefab, parent.transform);  
+        draggedRect = draggedImage.GetComponent<RectTransform>();
 
         Image dragImage = draggedImage.GetComponent<Image>();
         dragImage.sprite = slot.item.icon;
 
         Text quantityText = draggedImage.GetComponentInChildren<Text>();
-        if (quantityText != null)
-        {
-            quantityText.text = slot.quantity > 1 ? slot.quantity.ToString() : "";
-        }
-
-        draggedImage.SetActive(true);
+        quantityText.text = slot.quantity > 1 ? slot.quantity.ToString() : "";
     }
 
-    public void OnDrag(Vector2 position)
+    public void UpdateDragPosition(Vector2 position)
     {
-        if (draggedImage != null && draggedImage.activeSelf)
+        if (draggedImage != null && canvas != null)
         {
-            draggedRect.position = position;
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                canvas.GetComponent<RectTransform>(),
+                position,
+                canvas.worldCamera,
+                out Vector2 localPoint);
+
+            draggedRect.localPosition = localPoint;
         }
     }
 
-    public void EndDrag(InventorySlot targetSlot = null, int targetIndex = -1)
+    public void EndDrag(int targetIndex)
     {
-        if (draggedImage != null)
-        {
-            draggedImage.SetActive(false);
-        }
+        Destroy(draggedImage);
 
-        if (targetSlot == null || targetIndex == -1 || targetIndex == sourceIndex)
-        {
-            return;
-        }
-
-        InventoryManager inventoryManager = FindObjectOfType<InventoryManager>();
-        if (inventoryManager == null)
-        {
-            Debug.LogError("InventoryManager not found in scene.");
-            return;
-        }
-
-        if (targetSlot.isLocked)
-        {
-            Debug.Log("Cannot move item to locked slot.");
-            return;
-        }
-
-        if (targetSlot.item == null)
-        {
-            targetSlot.item = sourceSlot.item;
-            targetSlot.quantity = sourceSlot.quantity;
-
-            sourceSlot.item = null;
-            sourceSlot.quantity = 0;
-        }
-        else if (targetSlot.item.id == sourceSlot.item.id && targetSlot.item.maxStack>1)
-        {
-            int maxStack = targetSlot.item.maxStack;
-
-            int spaceInTarget = maxStack - targetSlot.quantity;
-
-            if (spaceInTarget > 0)
-            {
-                int amountToTransfer = Mathf.Min(spaceInTarget, sourceSlot.quantity);
-
-                targetSlot.quantity += amountToTransfer;
-
-                sourceSlot.quantity -= amountToTransfer;
-
-                if (sourceSlot.quantity <= 0)
-                {
-                    sourceSlot.item = null;
-                    sourceSlot.quantity = 0;
-                }
-            }
-        }
-        else
-        {
-            ItemData tempItem = targetSlot.item;
-            int tempQuantity = targetSlot.quantity;
-
-            targetSlot.item = sourceSlot.item;
-            targetSlot.quantity = sourceSlot.quantity;
-
-            sourceSlot.item = tempItem;
-            sourceSlot.quantity = tempQuantity;
-        }
-
-        /*inventoryManager.SaveInventory();
-
-        inventoryManager.OnInventoryChanged?.Invoke();*/
+        // Обмен данными между слотами
+        InventoryManager.Instance.SwapSlots(sourceIndex, targetIndex);
     }
 }
